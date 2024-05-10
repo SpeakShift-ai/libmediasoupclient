@@ -28,7 +28,6 @@ namespace mediasoupclient
 		public:
 			virtual void OnTransportClose(Consumer* consumer) = 0;
 		};
-
 	private:
 		Consumer(
 		  PrivateListener* privateListener,
@@ -36,8 +35,8 @@ namespace mediasoupclient
 		  const std::string& id,
 		  const std::string& localId,
 		  const std::string& producerId,
-		  webrtc::RtpReceiverInterface* rtpReceiver,
-		  webrtc::MediaStreamTrackInterface* track,
+          const rtc::scoped_refptr<webrtc::RtpReceiverInterface>& rtpReceiver,
+          const rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>& track,
 		  const nlohmann::json& rtpParameters,
 		  const nlohmann::json& appData);
 
@@ -47,8 +46,8 @@ namespace mediasoupclient
 		const std::string& GetProducerId() const;
 		bool IsClosed() const;
 		const std::string GetKind() const;
-		webrtc::RtpReceiverInterface* GetRtpReceiver() const;
-		webrtc::MediaStreamTrackInterface* GetTrack() const;
+        const rtc::scoped_refptr<webrtc::RtpReceiverInterface>& GetRtpReceiver() const;
+        const rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>& GetTrack() const;
 		const nlohmann::json& GetRtpParameters() const;
 		bool IsPaused() const;
 		nlohmann::json& GetAppData();
@@ -77,9 +76,9 @@ namespace mediasoupclient
 		// Closed flag.
 		bool closed{ false };
 		// Associated RTCRtpReceiver.
-		webrtc::RtpReceiverInterface* rtpReceiver{ nullptr };
+        rtc::scoped_refptr<webrtc::RtpReceiverInterface> rtpReceiver;
 		// Local track.
-		webrtc::MediaStreamTrackInterface* track{ nullptr };
+        rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track;
 		// RTP parameters.
 		nlohmann::json rtpParameters;
 		// Paused flag.

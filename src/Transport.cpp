@@ -174,7 +174,7 @@ namespace mediasoupclient
 	 */
 	Producer* SendTransport::Produce(
 	  Producer::Listener* producerListener,
-	  webrtc::MediaStreamTrackInterface* track,
+      const rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>& track,
 	  const std::vector<webrtc::RtpEncodingParameters>* encodings,
 	  const json* codecOptions,
 	  const json* codec,
@@ -345,7 +345,8 @@ namespace mediasoupclient
 		this->dataProducers.erase(dataProducer->GetId());
 	}
 
-	void SendTransport::OnReplaceTrack(const Producer* producer, webrtc::MediaStreamTrackInterface* track)
+	void SendTransport::OnReplaceTrack(const Producer* producer,
+                                       const rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>& track)
 	{
 		MSC_TRACE();
 

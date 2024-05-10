@@ -19,8 +19,8 @@ namespace mediasoupclient
 		{
 		public:
 			virtual void OnClose(Producer* producer) = 0;
-			virtual void OnReplaceTrack(
-			  const Producer* producer, webrtc::MediaStreamTrackInterface* newTrack)             = 0;
+			virtual void OnReplaceTrack(const Producer* producer,
+                                        const rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>& newTrack)             = 0;
 			virtual void OnSetMaxSpatialLayer(const Producer* producer, uint8_t maxSpatialLayer) = 0;
 			virtual nlohmann::json OnGetStats(const Producer* producer)                          = 0;
 		};
@@ -38,8 +38,8 @@ namespace mediasoupclient
 		  Listener* listener,
 		  const std::string& id,
 		  const std::string& localId,
-		  webrtc::RtpSenderInterface* rtpSender,
-		  webrtc::MediaStreamTrackInterface* track,
+		  const rtc::scoped_refptr<webrtc::RtpSenderInterface>& rtpSender,
+          const rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>& track,
 		  const nlohmann::json& rtpParameters,
 		  const nlohmann::json& appData);
 
@@ -48,8 +48,8 @@ namespace mediasoupclient
 		const std::string& GetLocalId() const;
 		bool IsClosed() const;
 		std::string GetKind() const;
-		webrtc::RtpSenderInterface* GetRtpSender() const;
-		webrtc::MediaStreamTrackInterface* GetTrack() const;
+        const rtc::scoped_refptr<webrtc::RtpSenderInterface>& GetRtpSender() const;
+        const rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>& GetTrack() const;
 		const nlohmann::json& GetRtpParameters() const;
 		bool IsPaused() const;
 		uint8_t GetMaxSpatialLayer() const;
@@ -58,7 +58,7 @@ namespace mediasoupclient
 		nlohmann::json GetStats() const;
 		void Pause();
 		void Resume();
-		void ReplaceTrack(webrtc::MediaStreamTrackInterface* track);
+		void ReplaceTrack(const rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>& track);
 		void SetMaxSpatialLayer(uint8_t spatialLayer);
 
 	private:
@@ -79,9 +79,9 @@ namespace mediasoupclient
 		// Closed flag.
 		bool closed{ false };
 		// Associated RTCRtpSender.
-		webrtc::RtpSenderInterface* rtpSender{ nullptr };
+        rtc::scoped_refptr<webrtc::RtpSenderInterface> rtpSender;
 		// Local track.
-		webrtc::MediaStreamTrackInterface* track{ nullptr };
+        rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track;
 		// RTP parameters.
 		nlohmann::json rtpParameters;
 		// Paused flag.

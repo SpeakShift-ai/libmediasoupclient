@@ -3,6 +3,7 @@
 
 #include <json.hpp>
 #include <api/peer_connection_interface.h> // webrtc::PeerConnectionInterface
+#include <api/jsep.h>
 #include <future>                          // std::promise, std::future
 #include <memory>                          // std::unique_ptr
 
@@ -11,14 +12,6 @@ namespace mediasoupclient
 	class PeerConnection
 	{
 	public:
-		enum class SdpType : uint8_t
-		{
-			OFFER = 0,
-			PRANSWER,
-			ANSWER
-		};
-
-		static std::map<PeerConnection::SdpType, const std::string> sdpType2String;
 		static std::map<webrtc::PeerConnectionInterface::IceConnectionState, const std::string>
 		  iceConnectionState2String;
 		static std::map<webrtc::PeerConnectionInterface::IceGatheringState, const std::string>
@@ -48,23 +41,9 @@ namespace mediasoupclient
 			void OnInterestingUsage(int usagePattern) override;
 		};
 
-		class SetSessionDescriptionObserver : public webrtc::SetSessionDescriptionObserver
-		{
-		public:
-			SetSessionDescriptionObserver()           = default;
-			~SetSessionDescriptionObserver() override = default;
-
-			std::future<void> GetFuture();
-			void Reject(const std::string& error);
-
-			/* Virtual methods inherited from webrtc::SetSessionDescriptionObserver. */
-		public:
-			void OnSuccess() override;
-			void OnFailure(webrtc::RTCError error) override;
-
-		private:
-			std::promise<void> promise;
-		};
+        class SetLocalDescriptionObserver;
+        
+        class SetRemoteDescriptionObserver;
 
 		class CreateSessionDescriptionObserver : public webrtc::CreateSessionDescriptionObserver
 		{
@@ -116,8 +95,8 @@ namespace mediasoupclient
 		bool SetConfiguration(const webrtc::PeerConnectionInterface::RTCConfiguration& config);
 		std::string CreateOffer(const webrtc::PeerConnectionInterface::RTCOfferAnswerOptions& options);
 		std::string CreateAnswer(const webrtc::PeerConnectionInterface::RTCOfferAnswerOptions& options);
-		void SetLocalDescription(PeerConnection::SdpType type, const std::string& sdp);
-		void SetRemoteDescription(PeerConnection::SdpType type, const std::string& sdp);
+		void SetLocalDescription(webrtc::SdpType type, const std::string& sdp);
+		void SetRemoteDescription(webrtc::SdpType type, const std::string& sdp);
 		const std::string GetLocalDescription();
 		const std::string GetRemoteDescription();
 		std::vector<rtc::scoped_refptr<webrtc::RtpTransceiverInterface>> GetTransceivers() const;
@@ -126,7 +105,7 @@ namespace mediasoupclient
 		  rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track,
 		  webrtc::RtpTransceiverInit rtpTransceiverInit);
 		std::vector<rtc::scoped_refptr<webrtc::RtpSenderInterface>> GetSenders();
-		bool RemoveTrack(webrtc::RtpSenderInterface* sender);
+        webrtc::RTCError RemoveTrack(rtc::scoped_refptr<webrtc::RtpSenderInterface> sender);
 		nlohmann::json GetStats();
 		nlohmann::json GetStats(rtc::scoped_refptr<webrtc::RtpSenderInterface> selector);
 		nlohmann::json GetStats(rtc::scoped_refptr<webrtc::RtpReceiverInterface> selector);

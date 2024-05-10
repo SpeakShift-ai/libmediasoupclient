@@ -17,15 +17,15 @@ namespace mediasoupclient
 	{
 		namespace Utils
 		{
-			json extractRtpCapabilities(const json& sdpObject)
+            nlohmann::json extractRtpCapabilities(const nlohmann::json& sdpObject)
 			{
 				MSC_TRACE();
 
 				// Map of RtpCodecParameters indexed by payload type.
-				std::map<uint8_t, json> codecsMap;
+				std::map<uint8_t, nlohmann::json> codecsMap;
 
 				// Array of RtpHeaderExtensions.
-				auto headerExtensions = json::array();
+				auto headerExtensions = nlohmann::json::array();
 
 				// Whether a m=audio/video section has been already found.
 				bool gotAudio = false;
@@ -61,14 +61,14 @@ namespace mediasoupclient
 						mimeType.append("/").append(rtp["codec"].get<std::string>());
 
 						// clang-format off
-						json codec =
+                        nlohmann::json codec =
 						{
 							{ "kind",                 kind           },
 							{ "mimeType",             mimeType       },
 							{ "preferredPayloadType", rtp["payload"] },
 							{ "clockRate",            rtp["rate"]    },
-							{ "parameters",           json::object() },
-							{ "rtcpFeedback",         json::array()  }
+							{ "parameters",           nlohmann::json::object() },
+							{ "rtcpFeedback",         nlohmann::json::array()  }
 						};
 						// clang-format on
 
@@ -136,7 +136,7 @@ namespace mediasoupclient
 					for (const auto& ext : m["ext"])
 					{
 						// clang-format off
-						json headerExtension =
+                        nlohmann::json headerExtension =
 						{
 								{ "kind",        kind },
 								{ "uri",         ext["uri"] },
@@ -149,11 +149,11 @@ namespace mediasoupclient
 				}
 
 				// clang-format off
-				json rtpCapabilities =
+                nlohmann::json rtpCapabilities =
 				{
 					{ "headerExtensions", headerExtensions },
-					{ "codecs",           json::array() },
-					{ "fecMechanisms",    json::array() } // TODO
+					{ "codecs",           nlohmann::json::array() },
+					{ "fecMechanisms",    nlohmann::json::array() } // TODO
 				};
 				// clang-format on
 
@@ -165,12 +165,12 @@ namespace mediasoupclient
 				return rtpCapabilities;
 			}
 
-			json extractDtlsParameters(const json& sdpObject)
+            nlohmann::json extractDtlsParameters(const nlohmann::json& sdpObject)
 			{
 				MSC_TRACE();
 
-				json m;
-				json fingerprint;
+                nlohmann::json m;
+                nlohmann::json fingerprint;
 				std::string role;
 
 				for (const auto& media : sdpObject["media"])
@@ -200,7 +200,7 @@ namespace mediasoupclient
 				}
 
 				// clang-format off
-				json dtlsParameters =
+                nlohmann::json dtlsParameters =
 				{
 					{ "role",         role },
 					{ "fingerprints",
@@ -217,7 +217,7 @@ namespace mediasoupclient
 				return dtlsParameters;
 			}
 
-			void addLegacySimulcast(json& offerMediaObject, uint8_t numStreams)
+			void addLegacySimulcast(nlohmann::json& offerMediaObject, uint8_t numStreams)
 			{
 				MSC_TRACE();
 
@@ -297,8 +297,8 @@ namespace mediasoupclient
 					MSC_THROW_ERROR("CNAME line not found");
 
 				auto cname    = (*jsonSsrcIt)["value"].get<std::string>();
-				auto ssrcs    = json::array();
-				auto rtxSsrcs = json::array();
+				auto ssrcs    = nlohmann::json::array();
+				auto rtxSsrcs = nlohmann::json::array();
 
 				for (uint8_t i = 0; i < numStreams; ++i)
 				{
@@ -308,8 +308,8 @@ namespace mediasoupclient
 						rtxSsrcs.push_back(firstRtxSsrc + i);
 				}
 
-				offerMediaObject["ssrcGroups"] = json::array();
-				offerMediaObject["ssrcs"]      = json::array();
+				offerMediaObject["ssrcGroups"] = nlohmann::json::array();
+				offerMediaObject["ssrcs"]      = nlohmann::json::array();
 
 				std::vector<uint32_t> ussrcs = ssrcs;
 				auto ssrcsLine               = mediasoupclient::Utils::join(ussrcs, ' ');
@@ -385,7 +385,7 @@ namespace mediasoupclient
 				}
 			};
 
-			std::string getCname(const json& offerMediaObject)
+			std::string getCname(const nlohmann::json& offerMediaObject)
 			{
 				MSC_TRACE();
 
@@ -394,9 +394,9 @@ namespace mediasoupclient
 				if (jsonMssrcsIt == offerMediaObject.end())
 					return "";
 
-				const json& mSsrcs = *jsonMssrcsIt;
+				const nlohmann::json& mSsrcs = *jsonMssrcsIt;
 
-				auto jsonSsrcIt = find_if(mSsrcs.begin(), mSsrcs.end(), [](const json& line) {
+				auto jsonSsrcIt = find_if(mSsrcs.begin(), mSsrcs.end(), [](const nlohmann::json& line) {
 					auto jsonAttributeIt = line.find("attribute");
 
 					return (jsonAttributeIt != line.end() && jsonAttributeIt->is_string());
@@ -410,7 +410,7 @@ namespace mediasoupclient
 				return ssrcCnameLine["value"].get<std::string>();
 			}
 
-			json getRtpEncodings(const json& offerMediaObject)
+            nlohmann::json getRtpEncodings(const nlohmann::json& offerMediaObject)
 			{
 				std::list<uint32_t> ssrcs;
 
@@ -456,11 +456,11 @@ namespace mediasoupclient
 
 				// Fill RTP parameters.
 
-				auto encodings = json::array();
+				auto encodings = nlohmann::json::array();
 
 				for (auto& ssrc : ssrcs)
 				{
-					json encoding = { { "ssrc", ssrc } };
+                    nlohmann::json encoding = { { "ssrc", ssrc } };
 
 					auto it = ssrcToRtxSsrc.find(ssrc);
 
@@ -475,7 +475,8 @@ namespace mediasoupclient
 				return encodings;
 			}
 
-			void applyCodecParameters(const json& offerRtpParameters, json& answerMediaObject)
+			void applyCodecParameters(const nlohmann::json& offerRtpParameters,
+                                      nlohmann::json& answerMediaObject)
 			{
 				MSC_TRACE();
 
@@ -514,8 +515,8 @@ namespace mediasoupclient
 						jsonFmtpIt = answerMediaObject["fmtp"].end() - 1;
 					}
 
-					json& fmtp      = *jsonFmtpIt;
-					json parameters = sdptransform::parseParams(fmtp["config"]);
+                    nlohmann::json& fmtp      = *jsonFmtpIt;
+                    nlohmann::json parameters = sdptransform::parseParams(fmtp["config"]);
 
 					if (mimeType == "audio/opus")
 					{

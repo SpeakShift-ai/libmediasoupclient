@@ -17,7 +17,7 @@ configure_file (
 )
 
 # C++ standard requirements.
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Project options.
@@ -32,6 +32,9 @@ endif()
 if(NOT LIBWEBRTC_BINARY_PATH)
 	set(LIBWEBRTC_BINARY_PATH "" CACHE STRING "libwebrtc binary path")
 endif()
+if(NOT NLOHMANN_JSON_INCLUDE_PATH)
+	set(NLOHMANN_JSON_INCLUDE_PATH "" CACHE STRING "nlohmann JSON include path")
+endif()
 
 if(NOT LIBWEBRTC_INCLUDE_PATH)
 	message(FATAL_ERROR "LIBWEBRTC_INCLUDE_PATH not provided")
@@ -41,12 +44,17 @@ if(NOT LIBWEBRTC_BINARY_PATH)
 	message(FATAL_ERROR "LIBWEBRTC_BINARY_PATH not provided")
 endif()
 
+if(NOT NLOHMANN_JSON_INCLUDE_PATH)
+	message(FATAL_ERROR "NLOHMANN_JSON_INCLUDE_PATH not provided")
+endif()
+
 message("\n=========== libmediasoupclient Build Configuration ===========\n")
 message(STATUS "MEDIASOUPCLIENT_BUILD_TESTS : " ${MEDIASOUPCLIENT_BUILD_TESTS})
 message(STATUS "MEDIASOUPCLIENT_LOG_TRACE   : " ${MEDIASOUPCLIENT_LOG_TRACE})
 message(STATUS "MEDIASOUPCLIENT_LOG_DEV     : " ${MEDIASOUPCLIENT_LOG_DEV})
 message(STATUS "LIBWEBRTC_INCLUDE_PATH      : " ${LIBWEBRTC_INCLUDE_PATH})
 message(STATUS "LIBWEBRTC_BINARY_PATH       : " ${LIBWEBRTC_BINARY_PATH})
+message(STATUS "NLOHMANN_JSON_INCLUDE_PATH  : " ${NLOHMANN_JSON_INCLUDE_PATH})
 message("")
 
 # GCC >= 4.9 is required due to std::regex use.
@@ -120,6 +128,10 @@ FetchContent_Declare(
   	GIT_REPOSITORY https://github.com/ibc/libsdptransform.git
   	GIT_TAG 1.2.10
 )
+FetchContent_GetProperties(libsdptransform)
+if(NOT libsdptransform_POPULATED)
+    FetchContent_Populate(libsdptransform)
+endif()
 FetchContent_MakeAvailable(libsdptransform)
 
 # Add some compile flags to our source files.
@@ -134,11 +146,14 @@ endif()
 # Private (implementation) header files.
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/include)
 
+message(STATUS "libsdptransform_SOURCE_DIR  : " ${libsdptransform_SOURCE_DIR})
+
 # Public (interface) headers from dependencies.
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${libsdptransform_SOURCE_DIR}/include
 	"${LIBWEBRTC_INCLUDE_PATH}"
 	"${LIBWEBRTC_INCLUDE_PATH}/third_party/abseil-cpp"
+	"${NLOHMANN_JSON_INCLUDE_PATH}/single_include/nlohmann"
 )
 
 # Public (interface) dependencies.

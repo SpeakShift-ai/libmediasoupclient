@@ -20,7 +20,7 @@ namespace mediasoupclient
 		webrtc::field_trial::InitFieldTrialsFromString("WebRTC-SupportVP9SVC/EnabledByFlag_3SL3TL/");
 
 		rtc::InitializeSSL();
-		rtc::InitRandom(rtc::Time());
+        rtc::InitRandom(static_cast<int>(rtc::Time()));
 	}
 
 	void Cleanup() // NOLINT(readability-identifier-naming)
