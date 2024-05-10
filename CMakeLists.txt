@@ -32,9 +32,6 @@ endif()
 if(NOT LIBWEBRTC_BINARY_PATH)
 	set(LIBWEBRTC_BINARY_PATH "" CACHE STRING "libwebrtc binary path")
 endif()
-if(NOT NLOHMANN_JSON_INCLUDE_PATH)
-	set(NLOHMANN_JSON_INCLUDE_PATH "" CACHE STRING "nlohmann JSON include path")
-endif()
 
 if(NOT LIBWEBRTC_INCLUDE_PATH)
 	message(FATAL_ERROR "LIBWEBRTC_INCLUDE_PATH not provided")
@@ -44,17 +41,12 @@ if(NOT LIBWEBRTC_BINARY_PATH)
 	message(FATAL_ERROR "LIBWEBRTC_BINARY_PATH not provided")
 endif()
 
-if(NOT NLOHMANN_JSON_INCLUDE_PATH)
-	message(FATAL_ERROR "NLOHMANN_JSON_INCLUDE_PATH not provided")
-endif()
-
 message("\n=========== libmediasoupclient Build Configuration ===========\n")
 message(STATUS "MEDIASOUPCLIENT_BUILD_TESTS : " ${MEDIASOUPCLIENT_BUILD_TESTS})
 message(STATUS "MEDIASOUPCLIENT_LOG_TRACE   : " ${MEDIASOUPCLIENT_LOG_TRACE})
 message(STATUS "MEDIASOUPCLIENT_LOG_DEV     : " ${MEDIASOUPCLIENT_LOG_DEV})
 message(STATUS "LIBWEBRTC_INCLUDE_PATH      : " ${LIBWEBRTC_INCLUDE_PATH})
 message(STATUS "LIBWEBRTC_BINARY_PATH       : " ${LIBWEBRTC_BINARY_PATH})
-message(STATUS "NLOHMANN_JSON_INCLUDE_PATH  : " ${NLOHMANN_JSON_INCLUDE_PATH})
 message("")
 
 # GCC >= 4.9 is required due to std::regex use.
@@ -134,6 +126,18 @@ if(NOT libsdptransform_POPULATED)
 endif()
 FetchContent_MakeAvailable(libsdptransform)
 
+message(STATUS "\nFetching Nlohmann JSON...\n")
+FetchContent_Declare(
+	libnlohmannjson
+  	GIT_REPOSITORY https://github.com/nlohmann/json.git
+  	GIT_TAG v3.11.3
+)
+FetchContent_GetProperties(libnlohmannjson)
+if(NOT libnlohmannjson_POPULATED)
+    FetchContent_Populate(libnlohmannjson)
+endif()
+FetchContent_MakeAvailable(libnlohmannjson)
+
 # Add some compile flags to our source files.
 if(MSVC)
 	set_source_files_properties(${SOURCE_FILES}
@@ -146,14 +150,12 @@ endif()
 # Private (implementation) header files.
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/include)
 
-message(STATUS "libsdptransform_SOURCE_DIR  : " ${libsdptransform_SOURCE_DIR})
-
 # Public (interface) headers from dependencies.
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${libsdptransform_SOURCE_DIR}/include
 	"${LIBWEBRTC_INCLUDE_PATH}"
 	"${LIBWEBRTC_INCLUDE_PATH}/third_party/abseil-cpp"
-	"${NLOHMANN_JSON_INCLUDE_PATH}/single_include/nlohmann"
+	"${libnlohmannjson_SOURCE_DIR}/single_include/nlohmann"
 )
 
 # Public (interface) dependencies.
